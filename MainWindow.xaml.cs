@@ -89,7 +89,7 @@ namespace CircuitCanvas
             InitializeComponent();
             InitCatalogDefinitions();
             PopulateCatalogUI();
-            ApplyTheme(isDark: true);
+            ApplyTheme(isDark: false);
             LoadExample();
 
             _animationTimer = new DispatcherTimer(DispatcherPriority.Render);
@@ -434,7 +434,7 @@ namespace CircuitCanvas
         private void ThemeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ThemeSelector == null || !IsLoaded) return;
-            ApplyTheme(ThemeSelector.SelectedIndex == 0);
+            ApplyTheme(ThemeSelector.SelectedIndex == 1); // 0 = Light, 1 = Dark
         }
 
         private void ToggleCatalog_Click(object sender, RoutedEventArgs e)

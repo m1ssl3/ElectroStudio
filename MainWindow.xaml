@@ -166,8 +166,8 @@
                     <TextBlock Text="Тема:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{DynamicResource SubTextBrush}" FontSize="12"/>
                     <ComboBox x:Name="ThemeSelector" SelectedIndex="0" SelectionChanged="ThemeSelector_SelectionChanged"
                               Width="105" Height="28" VerticalAlignment="Center">
-                        <ComboBoxItem Content="🌙 Темная"/>
                         <ComboBoxItem Content="☀ Светлая"/>
+                        <ComboBoxItem Content="🌙 Темная"/>
                     </ComboBox>
                 </StackPanel>
             </WrapPanel>
@@ -250,7 +250,7 @@
 
             <!-- RIGHT INSPECTOR -->
             <Border Grid.Column="2" Background="{DynamicResource SideBgBrush}" BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1,0,0,0" Padding="16">
+                    BorderThickness="1,0,0,0" Padding="14">
                 <StackPanel>
                     <TextBlock Text="Свойства компонента" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,12"/>
 
@@ -268,14 +268,14 @@
                     <TextBlock x:Name="ValueLabelText" Text="Номинал:" Foreground="{DynamicResource SubTextBrush}" FontSize="11" Margin="0,0,0,4"/>
                     <TextBox x:Name="ElementValueBox" Style="{StaticResource ModernTextBox}" TextChanged="ElementValueBox_TextChanged" Margin="0,0,0,18"/>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0,0,0,16">
-                        <Button Content="🔄 Повернуть (90°)" Click="RotateSelected_Click"
+                    <UniformGrid Columns="2" Margin="0,0,0,16">
+                        <Button Content="🔄 90°" Click="RotateSelected_Click"
                                 Background="{DynamicResource CardBgBrush}" Style="{StaticResource ModernBtn}"
-                                Width="124" Margin="0,0,8,0"/>
+                                Margin="0,0,4,0" ToolTip="Повернуть элемент на 90 градусов"/>
                         <Button Content="🗑 Удалить" Click="DeleteSelected_Click"
                                 Background="#EF4444" Foreground="#FFFFFF" BorderThickness="0" Style="{StaticResource ModernBtn}"
-                                Width="124"/>
-                    </StackPanel>
+                                Margin="4,0,0,0"/>
+                    </UniformGrid>
 
                     <Separator Margin="0,16" Background="{DynamicResource BorderBrush}"/>
 
