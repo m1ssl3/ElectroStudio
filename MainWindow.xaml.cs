@@ -96,6 +96,9 @@ namespace CircuitCanvas
             _animationTimer.Interval = TimeSpan.FromMilliseconds(25);
             _animationTimer.Tick += AnimationTimer_Tick;
             _animationTimer.Start();
+
+            // Проверка обновлений по воздуху в фоновом потоке
+            Loaded += async (s, e) => await CheckForUpdatesSilentlyAsync();
         }
 
         private void InitCatalogDefinitions()
@@ -1623,6 +1626,154 @@ namespace CircuitCanvas
             string solution = FormulaSolver.Evaluate(inputFormula, vars);
 
             FormulaResultText.Text = solution;
+        }
+
+        // ================= СОХРАНЕНИЕ И ОТКРЫТИЕ СХЕМ =================
+        private void SaveProject_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var sfd = new Microsoft.Win32.SaveFileDialog
+                {
+                    Title = "Сохранить электрическую схему",
+                    Filter = "Файлы схем ElectroStudio (*.elec)|*.elec|JSON файлы (*.json)|*.json|Все файлы (*.*)|*.*",
+                    DefaultExt = ".elec",
+                    FileName = "МояСхема_1.elec"
+                };
+
+                if (sfd.ShowDialog() == true)
+                {
+                    string json = ProjectSerializer.SaveToJson(_components, _wires, _drawnStrokes, System.IO.Path.GetFileNameWithoutExtension(sfd.FileName));
+                    System.IO.File.WriteAllText(sfd.FileName, json, System.Text.Encoding.UTF8);
+                    MessageBox.Show("Схема успешно сохранена!", "ElectroStudio Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при сохранении схемы: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void OpenProject_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var ofd = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "Открыть электрическую схему",
+                    Filter = "Файлы схем ElectroStudio (*.elec;*.json)|*.elec;*.json|Все файлы (*.*)|*.*"
+                };
+
+                if (ofd.ShowDialog() == true)
+                {
+                    string json = System.IO.File.ReadAllText(ofd.FileName, System.Text.Encoding.UTF8);
+                    if (ProjectSerializer.LoadFromJson(json, out var comps, out var wires, out var strokes))
+                    {
+                        _components.Clear();
+                        _wires.Clear();
+                        _drawnStrokes.Clear();
+
+                        _components.AddRange(comps);
+                        _wires.AddRange(wires);
+                        _drawnStrokes.AddRange(strokes);
+
+                        _selectedComponent = null;
+                        UpdateInspector();
+                        RedrawAll();
+
+                        MessageBox.Show($"Схема успешно загружена! Загружено компонентов: {comps.Count}, соединений: {wires.Count}.", "ElectroStudio Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Не удалось прочитать файл схемы. Возможно, он повреждён или создан в другой версии.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при открытии схемы: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ================= ОБНОВЛЕНИЕ ПО ВОЗДУХУ (OTA) =================
+        private async System.Threading.Tasks.Task CheckForUpdatesSilentlyAsync()
+        {
+            try
+            {
+                var update = await UpdateChecker.CheckForUpdatesAsync();
+                if (update.IsUpdateAvailable)
+                {
+                    UpdateBadgeBtn.Content = $"🔥 Обновить до v{update.LatestVersion}";
+                    UpdateBadgeBtn.Background = new SolidColorBrush(Color.FromRgb(254, 243, 199)); // amber-100
+                    UpdateBadgeBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(217, 119, 6)); // amber-600
+                    UpdateBadgeBtn.Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9));
+                }
+            }
+            catch { }
+        }
+
+        private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                UpdateBadgeBtn.Content = "⏳ Проверка...";
+                var update = await UpdateChecker.CheckForUpdatesAsync();
+
+                if (update.IsUpdateAvailable)
+                {
+                    var msgResult = MessageBox.Show(
+                        $"Найдена новая версия ElectroStudio Pro v{update.LatestVersion}!\n" +
+                        $"Текущая установленная версия: v{update.CurrentVersion}\n\n" +
+                        $"Обновить приложение по воздуху прямо сейчас?",
+                        "Доступно обновление",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (msgResult == MessageBoxResult.Yes)
+                    {
+                        if (string.IsNullOrEmpty(update.DownloadUrl))
+                        {
+                            // Открываем страницу релиза, если архив не найден
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = update.ReleasePageUrl,
+                                UseShellExecute = true
+                            });
+                            return;
+                        }
+
+                        UpdateBadgeBtn.Content = "⬇ Загрузка...";
+                        bool ok = await UpdateChecker.DownloadAndApplyUpdateAsync(update.DownloadUrl, p =>
+                        {
+                            Dispatcher.Invoke(() => UpdateBadgeBtn.Content = $"⬇ Загрузка {p}%");
+                        });
+
+                        if (!ok)
+                        {
+                            MessageBox.Show("Не удалось применить обновление автоматически. Открываю страницу релиза.", "Ошибка обновления", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = update.ReleasePageUrl, UseShellExecute = true });
+                        }
+                    }
+                    else
+                    {
+                        UpdateBadgeBtn.Content = $"🔥 v{update.LatestVersion}";
+                    }
+                }
+                else
+                {
+                    UpdateBadgeBtn.Content = "🚀 Обновление";
+                    MessageBox.Show(
+                        $"У вас установлена самая актуальная версия: ElectroStudio Pro v{UpdateChecker.CurrentVersion}!\nОбновлений пока нет.",
+                        "Проверка обновлений",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateBadgeBtn.Content = "🚀 Обновление";
+                MessageBox.Show($"Не удалось связаться с сервером обновлений: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

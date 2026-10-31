@@ -157,11 +157,18 @@
                     </Button.Resources>
                 </Button>
 
-                <!-- 5. Вспомогательные действия -->
+                <!-- 5. Вспомогательные действия & Файлы -->
+                <Button Content="💾 Сохранить" Style="{StaticResource ModernBtn}" Click="SaveProject_Click" Margin="0,2,4,2" Padding="8,6" ToolTip="Сохранить цепь в файл .elec (Ctrl+S)"/>
+                <Button Content="📂 Открыть" Style="{StaticResource ModernBtn}" Click="OpenProject_Click" Margin="0,2,6,2" Padding="8,6" ToolTip="Открыть схему из файла (Ctrl+O)"/>
                 <Button Content="💡 Пример" Style="{StaticResource ModernBtn}" Click="LoadExample_Click" Margin="0,2,4,2" Padding="8,6"/>
-                <Button Content="🗑 Очистить" Style="{StaticResource ModernBtn}" Click="ClearAll_Click" Margin="0,2,12,2" Padding="8,6"/>
+                <Button Content="🗑 Очистить" Style="{StaticResource ModernBtn}" Click="ClearAll_Click" Margin="0,2,8,2" Padding="8,6"/>
 
-                <!-- 6. Тема оформления -->
+                <!-- 6. Обновления -->
+                <Button x:Name="UpdateBadgeBtn" Content="🚀 Обновление" Click="CheckUpdate_Click"
+                        Style="{StaticResource ModernBtn}" Margin="0,2,8,2" Padding="8,6"
+                        Foreground="#2563EB" BorderBrush="#2563EB" ToolTip="Проверить наличие обновлений"/>
+
+                <!-- 7. Тема оформления -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,0,2">
                     <TextBlock Text="Тема:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{DynamicResource SubTextBrush}" FontSize="12"/>
                     <ComboBox x:Name="ThemeSelector" SelectedIndex="0" SelectionChanged="ThemeSelector_SelectionChanged"
