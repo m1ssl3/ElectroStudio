@@ -1,0 +1,364 @@
+<Window x:Class="CircuitCanvas.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="ЭлектроСтудия Pro — Лаборатория Электроники и Схемотехники" Height="900" Width="1480"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI, Inter, Arial"
+        Background="{DynamicResource WindowBgBrush}">
+
+    <Window.Resources>
+        <Style TargetType="Button" x:Key="ModernBtn">
+            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="{DynamicResource HoverBgBrush}"/>
+                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button" x:Key="CatalogItemBtn" BasedOn="{StaticResource ModernBtn}">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+
+        <Style TargetType="Button" x:Key="AccentBtn" BasedOn="{StaticResource ModernBtn}">
+            <Setter Property="Background" Value="#10B981"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style TargetType="RadioButton" x:Key="SegmentRadio">
+            <Setter Property="Foreground" Value="{DynamicResource SubTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="pillBorder" Background="{TemplateBinding Background}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="pillBorder" Property="Background" Value="{DynamicResource CardBgBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBox" x:Key="ModernTextBox">
+            <Setter Property="Background" Value="{DynamicResource InputBgBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="txtBorder" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>    <!-- GridSplitter для изменения высоты нижней панели -->
+            <RowDefinition Height="220" MinHeight="80" MaxHeight="600" x:Name="BottomRowDef"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR (ADAPTIVE CLEAN WRAP LAYOUT) -->
+        <Border Grid.Row="0" Background="{DynamicResource HeaderBgBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1" Padding="12,8">
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                <!-- 1. Каталог элементов -->
+                <Button x:Name="CatalogToggleBtn" Content="☰ Каталог (50+ элементов)" Style="{StaticResource ModernBtn}"
+                        Click="ToggleCatalog_Click" Margin="0,2,8,2" Padding="10,6"/>
+
+                <!-- 2. Режимы работы -->
+                <Border Background="{DynamicResource SegmentBgBrush}" CornerRadius="8" Padding="2" Margin="0,2,8,2">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="ModeInteractRadio" Content="⚡ Схема" Style="{StaticResource SegmentRadio}"
+                                     IsChecked="True" Checked="ModeInteract_Checked" Padding="10,5"/>
+                        <RadioButton x:Name="ModeDrawRadio" Content="✏ Карандаш" Style="{StaticResource SegmentRadio}"
+                                     Checked="ModeDraw_Checked" Padding="10,5"/>
+                        <RadioButton x:Name="ModeEraseRadio" Content="🧹 Ластик" Style="{StaticResource SegmentRadio}"
+                                     Checked="ModeErase_Checked" Padding="10,5"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 3. Стили отображения -->
+                <Border Background="{DynamicResource SegmentBgBrush}" CornerRadius="8" Padding="2" Margin="0,2,12,2">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="RenderSchematicRadio" Content="📐 2D Схема" Style="{StaticResource SegmentRadio}"
+                                     Checked="RenderSchematic_Checked" Padding="8,5"/>
+                        <RadioButton x:Name="RenderRealisticRadio" Content="💡 Реалистичный" Style="{StaticResource SegmentRadio}"
+                                     IsChecked="True" Checked="RenderRealistic_Checked" Padding="8,5"/>
+                        <RadioButton x:Name="RenderGostRadio" Content="📖 ГОСТ / Учебник" Style="{StaticResource SegmentRadio}"
+                                     Checked="RenderGost_Checked" Padding="8,5"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 4. Кнопки управления симуляцией -->
+                <Button Content="▶  ЗАПУСК СХЕМЫ" Style="{StaticResource AccentBtn}"
+                        Click="SolveCircuit_Click" Margin="0,2,6,2" Padding="14,6"/>
+                <Button Content="⏹ ОСТАНОВИТЬ" Click="StopCircuit_Click"
+                        Padding="12,6" Margin="0,2,12,2" FontSize="12" FontWeight="Bold" Cursor="Hand"
+                        Background="#DC2626" Foreground="#FFFFFF" BorderThickness="0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <!-- 5. Вспомогательные действия -->
+                <Button Content="💡 Пример" Style="{StaticResource ModernBtn}" Click="LoadExample_Click" Margin="0,2,4,2" Padding="8,6"/>
+                <Button Content="🗑 Очистить" Style="{StaticResource ModernBtn}" Click="ClearAll_Click" Margin="0,2,12,2" Padding="8,6"/>
+
+                <!-- 6. Тема оформления -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,0,2">
+                    <TextBlock Text="Тема:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{DynamicResource SubTextBrush}" FontSize="12"/>
+                    <ComboBox x:Name="ThemeSelector" SelectedIndex="0" SelectionChanged="ThemeSelector_SelectionChanged"
+                              Width="105" Height="28" VerticalAlignment="Center">
+                        <ComboBoxItem Content="🌙 Темная"/>
+                        <ComboBoxItem Content="☀ Светлая"/>
+                    </ComboBox>
+                </StackPanel>
+            </WrapPanel>
+        </Border>
+
+        <!-- MAIN WORKSPACE -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/> <!-- Catalog -->
+                <ColumnDefinition Width="*"/>    <!-- Canvas Area -->
+                <ColumnDefinition Width="290"/>  <!-- Inspector -->
+            </Grid.ColumnDefinitions>
+
+            <!-- 50+ COMPONENT CATALOG DRAWER WITH SEARCH -->
+            <Border Grid.Column="0" x:Name="CatalogPanel" Width="290"
+                    Background="{DynamicResource SideBgBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Padding="14,10" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
+                        <TextBlock Text="Библиотека радиодеталей (50+)" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextBrush}"/>
+                    </Border>
+
+                    <!-- Search box -->
+                    <Border Grid.Row="1" Padding="10,6" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
+                        <TextBox x:Name="CatalogSearchBox" Style="{StaticResource ModernTextBox}"
+                                 TextChanged="CatalogSearchBox_TextChanged" Text=""/>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="CatalogItemsContainer" Margin="10,8">
+                            <!-- Populated dynamically or structurally in C# -->
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- CANVAS & OVERLAYS -->
+            <Grid Grid.Column="1">
+                <ScrollViewer x:Name="CanvasScrollViewer"
+                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                              Background="{DynamicResource CanvasBgBrush}"
+                              PreviewMouseWheel="CanvasScrollViewer_PreviewMouseWheel">
+                    <Canvas x:Name="MainCanvas" Width="2800" Height="2000"
+                            Background="{DynamicResource CanvasBgBrush}"
+                            MouseDown="MainCanvas_MouseDown"
+                            MouseMove="MainCanvas_MouseMove"
+                            MouseUp="MainCanvas_MouseUp"
+                            ClipToBounds="True">
+                        <Canvas.LayoutTransform>
+                            <ScaleTransform x:Name="CanvasScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
+                        </Canvas.LayoutTransform>
+                    </Canvas>
+                </ScrollViewer>
+
+                <!-- FLOATING FORMULA BAR (Для выражений типа I1 + I2 = ) -->
+                <Border HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,14,0,0"
+                        Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="10" Padding="8,6"
+                        Effect="{DynamicResource DropShadowEffect}">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="📐 Формула:" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="6,0,8,0"/>
+                        <TextBox x:Name="FormulaInputBox" Width="200" Style="{StaticResource ModernTextBox}"
+                                 Text="I1 + I2 =" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button Content="⚡ РЕШИТЬ" Click="SolveFormula_Click" Style="{StaticResource AccentBtn}"
+                                Padding="12,5" Margin="6,0,4,0" FontSize="11"/>
+                        <Button Content="✍ РЕШИТЬ НАРИСОВАННОЕ" Click="SolveHandwritten_Click" Style="{StaticResource ModernBtn}"
+                                Padding="10,5" Margin="4,0,6,0" FontSize="11" Background="{DynamicResource SegmentBgBrush}"/>
+                        <Border Background="{DynamicResource SegmentBgBrush}" CornerRadius="6" Padding="10,4" Margin="4,0,4,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="FormulaResultText" Text="Результат появится здесь" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextBrush}"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- RIGHT INSPECTOR -->
+            <Border Grid.Column="2" Background="{DynamicResource SideBgBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1,0,0,0" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="Свойства компонента" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,12"/>
+
+                    <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Padding="12" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Выбранный объект:" Foreground="{DynamicResource SubTextBrush}" FontSize="11" Margin="0,0,0,2"/>
+                            <TextBlock x:Name="SelectedElementNameText" Text="(ничего не выбрано)" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource AccentBrush}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Имя / Маркировка:" Foreground="{DynamicResource SubTextBrush}" FontSize="11" Margin="0,0,0,4"/>
+                    <TextBox x:Name="ElementNameBox" Style="{StaticResource ModernTextBox}" TextChanged="ElementNameBox_TextChanged" Margin="0,0,0,14"/>
+
+                    <TextBlock x:Name="ValueLabelText" Text="Номинал:" Foreground="{DynamicResource SubTextBrush}" FontSize="11" Margin="0,0,0,4"/>
+                    <TextBox x:Name="ElementValueBox" Style="{StaticResource ModernTextBox}" TextChanged="ElementValueBox_TextChanged" Margin="0,0,0,18"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0,0,0,16">
+                        <Button Content="🔄 Повернуть (90°)" Click="RotateSelected_Click"
+                                Background="{DynamicResource CardBgBrush}" Style="{StaticResource ModernBtn}"
+                                Width="124" Margin="0,0,8,0"/>
+                        <Button Content="🗑 Удалить" Click="DeleteSelected_Click"
+                                Background="#EF4444" Foreground="#FFFFFF" BorderThickness="0" Style="{StaticResource ModernBtn}"
+                                Width="124"/>
+                    </StackPanel>
+
+                    <Separator Margin="0,16" Background="{DynamicResource BorderBrush}"/>
+
+                    <!-- СПРАВКА: ЧТО ЭТО ТАКОЕ (ЭНЦИКЛОПЕДИЯ ДЕТАЛИ) -->
+                    <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="📖 Что это такое?" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="ElementDescriptionText"
+                                       Text="Выберите любой компонент на схеме, чтобы прочитать, как он работает и для чего нужен в электронике."
+                                       TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" FontSize="11" LineHeight="16"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="💡 Управление:" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,6"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}" FontSize="11" LineHeight="16">
+                                • Формулы: вводите выражения вида &quot;I1 + I2 =&quot; или &quot;U(R1) * 2 =&quot; в верхнюю плашку и жмите &quot;РЕШИТЬ&quot;!&#x0a;
+                                • Тяните компонент за корпус для перемещения.&#x0a;
+                                • Тяните за кружки выводов для создания провода.&#x0a;
+                                • Правый клик по проводу удаляет его.&#x0a;
+                                • Инструмент Ластик 🧹 стирает линии, провода и детали одним движением.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- HORIZONTAL SPLITTER TO RESIZE BOTTOM PANEL -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                      Background="{DynamicResource BorderBrush}" Cursor="SizeNS"/>
+
+        <!-- RESULTS (ПЕРЕМЕЩАЕМАЯ И РАЗДЕЛЯЕМАЯ ПАНЕЛЬ С ДВУМЯ СПЛИТТЕРАМИ) -->
+        <Border Grid.Row="3" Background="{DynamicResource BottomBgBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,1,0,0" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="360" MinWidth="200"/>
+                    <ColumnDefinition Width="6"/> <!-- Разделитель между состоянием и таблицей -->
+                    <ColumnDefinition Width="*" MinWidth="300"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                    <TextBlock Text="Состояние симуляции" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,6"/>
+                    <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Padding="12" MinHeight="100">
+                        <TextBlock x:Name="SolutionStatusText" Text="Схема готова. Нажмите 'РАССЧИТАТЬ И ЗАПУСТИТЬ ТОК'."
+                                   TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}" FontSize="12" LineHeight="18"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- ВЕРТИКАЛЬНЫЙ РАЗДЕЛИТЕЛЬ МЕЖДУ СТАТУСОМ И ТАБЛИЦЕЙ -->
+                <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                              Background="{DynamicResource BorderBrush}" Cursor="SizeWE"/>
+
+                <Grid Grid.Column="2" Margin="6,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Показания на элементах цепи" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,6"/>
+
+                    <DataGrid x:Name="ResultsDataGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="{DynamicResource CardBgBrush}" Foreground="{DynamicResource TextBrush}"
+                              RowBackground="{DynamicResource CardBgBrush}" AlternatingRowBackground="{DynamicResource AltRowBgBrush}"
+                              BorderBrush="{DynamicResource BorderBrush}" HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource BorderBrush}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Элемент" Binding="{Binding Name}" Width="110"/>
+                            <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="150"/>
+                            <DataGridTextColumn Header="Номинал" Binding="{Binding ParamValue, StringFormat={}{0:G4}}" Width="95"/>
+                            <DataGridTextColumn Header="Ед." Binding="{Binding Unit}" Width="65"/>
+                            <DataGridTextColumn Header="Напряжение (В)" Binding="{Binding Voltage, StringFormat={}{0:F3}}" Width="120"/>
+                            <DataGridTextColumn Header="Ток (А)" Binding="{Binding Current, StringFormat={}{0:F4}}" Width="110"/>
+                            <DataGridTextColumn Header="Мощность (Вт)" Binding="{Binding Power, StringFormat={}{0:F4}}" Width="110"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
