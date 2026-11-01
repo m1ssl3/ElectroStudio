@@ -1743,14 +1743,22 @@ namespace CircuitCanvas
                         }
 
                         UpdateBadgeBtn.Content = "⬇ Загрузка...";
-                        bool ok = await UpdateChecker.DownloadAndApplyUpdateAsync(update.DownloadUrl, p =>
+                        try
                         {
-                            Dispatcher.Invoke(() => UpdateBadgeBtn.Content = $"⬇ Загрузка {p}%");
-                        });
+                            bool ok = await UpdateChecker.DownloadAndApplyUpdateAsync(update.DownloadUrl, p =>
+                            {
+                                Dispatcher.Invoke(() => UpdateBadgeBtn.Content = $"⬇ Загрузка {p}%");
+                            });
 
-                        if (!ok)
+                            if (!ok)
+                            {
+                                MessageBox.Show("Не удалось применить обновление автоматически. Открываю страницу релиза.", "Ошибка обновления", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = update.ReleasePageUrl, UseShellExecute = true });
+                            }
+                        }
+                        catch (Exception updateEx)
                         {
-                            MessageBox.Show("Не удалось применить обновление автоматически. Открываю страницу релиза.", "Ошибка обновления", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            MessageBox.Show($"Ошибка обновления: {updateEx.Message}", "Ошибка обновления", MessageBoxButton.OK, MessageBoxImage.Warning);
                             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = update.ReleasePageUrl, UseShellExecute = true });
                         }
                     }

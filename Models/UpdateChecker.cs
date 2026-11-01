@@ -142,7 +142,7 @@ del ""%~f0""
 ";
 
                 string updaterBat = Path.Combine(tempDir, "updater.bat");
-                await File.WriteAllTextAsync(updaterBat, batchScript, System.Text.Encoding.GetEncoding(866));
+                await File.WriteAllTextAsync(updaterBat, batchScript, System.Text.Encoding.ASCII);
 
                 var psi = new ProcessStartInfo
                 {
