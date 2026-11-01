@@ -246,8 +246,6 @@
                                  Text="I1 + I2 =" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <Button Content="⚡ РЕШИТЬ" Click="SolveFormula_Click" Style="{StaticResource AccentBtn}"
                                 Padding="12,5" Margin="6,0,4,0" FontSize="11"/>
-                        <Button Content="✍ РЕШИТЬ НАРИСОВАННОЕ" Click="SolveHandwritten_Click" Style="{StaticResource ModernBtn}"
-                                Padding="10,5" Margin="4,0,6,0" FontSize="11" Background="{DynamicResource SegmentBgBrush}"/>
                         <Border Background="{DynamicResource SegmentBgBrush}" CornerRadius="6" Padding="10,4" Margin="4,0,4,0" VerticalAlignment="Center">
                             <TextBlock x:Name="FormulaResultText" Text="Результат появится здесь" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextBrush}"/>
                         </Border>
