@@ -1001,9 +1001,12 @@ namespace CircuitCanvas
             }
             else if (comp.Category == ComponentCategory.Resistors)
             {
-                // Строгий ГОСТ прямоугольник резистора (R)
-                double rW = comp.Width - 24;
-                double rH = comp.Height - 16;
+                // Строгий ГОСТ прямоугольник резистора
+                // Высота прямоугольника ГОСТ: 14px, выводные линии по краям
+                double rW = comp.Width - 28;
+                double rH = 16;
+                double topY = (comp.Height - rH) / 2;
+
                 var rect = new Rectangle
                 {
                     Width = rW,
@@ -1012,26 +1015,27 @@ namespace CircuitCanvas
                     StrokeThickness = strokeThick,
                     Fill = new SolidColorBrush(_canvasBg)
                 };
-                Canvas.SetLeft(rect, 12);
-                Canvas.SetTop(rect, 8);
+                Canvas.SetLeft(rect, 14);
+                Canvas.SetTop(rect, topY);
                 canvasItem.Children.Add(rect);
 
-                var leftPinLine = new Line { X1 = 0, Y1 = comp.Height / 2, X2 = 12, Y2 = comp.Height / 2, Stroke = strokeBrush, StrokeThickness = strokeThick };
-                var rightPinLine = new Line { X1 = comp.Width - 12, Y1 = comp.Height / 2, X2 = comp.Width, Y2 = comp.Height / 2, Stroke = strokeBrush, StrokeThickness = strokeThick };
+                var leftPinLine = new Line { X1 = 0, Y1 = comp.Height / 2, X2 = 14, Y2 = comp.Height / 2, Stroke = strokeBrush, StrokeThickness = strokeThick };
+                var rightPinLine = new Line { X1 = comp.Width - 14, Y1 = comp.Height / 2, X2 = comp.Width, Y2 = comp.Height / 2, Stroke = strokeBrush, StrokeThickness = strokeThick };
                 canvasItem.Children.Add(leftPinLine);
                 canvasItem.Children.Add(rightPinLine);
 
+                // Обозначение R вынесено ЗА пределы прямоугольника (сверху, как положено по ГОСТ / ЕСКД)
                 var txt = new TextBlock
                 {
-                    Text = "R",
+                    Text = comp.Label.Length <= 4 ? comp.Label : "R",
                     FontFamily = new FontFamily("Times New Roman, Cambria, Serif"),
                     FontStyle = FontStyles.Italic,
                     FontWeight = FontWeights.Bold,
-                    FontSize = 22,
+                    FontSize = 14,
                     Foreground = strokeBrush
                 };
                 Canvas.SetLeft(txt, comp.Width / 2 - 8);
-                Canvas.SetTop(txt, comp.Height / 2 - 14);
+                Canvas.SetTop(txt, topY - 18);
                 canvasItem.Children.Add(txt);
             }
             else
@@ -1172,9 +1176,7 @@ namespace CircuitCanvas
             }
 
             // Drag component or Toggle Switch
-            var hitComp = _components.FirstOrDefault(c =>
-                mousePos.X >= c.X - c.Width / 2 && mousePos.X <= c.X + c.Width / 2 &&
-                mousePos.Y >= c.Y - c.Height / 2 && mousePos.Y <= c.Y + c.Height / 2);
+            var hitComp = _components.FirstOrDefault(c => c.ContainsPoint(mousePos.X, mousePos.Y));
 
             _selectedComponent = hitComp;
             UpdateInspector();
@@ -1329,9 +1331,7 @@ namespace CircuitCanvas
                 }
             }
 
-            var comp = _components.FirstOrDefault(c =>
-                p.X >= c.X - c.Width / 2 && p.X <= c.X + c.Width / 2 &&
-                p.Y >= c.Y - c.Height / 2 && p.Y <= c.Y + c.Height / 2);
+            var comp = _components.FirstOrDefault(c => c.ContainsPoint(p.X, p.Y));
 
             if (comp != null)
             {

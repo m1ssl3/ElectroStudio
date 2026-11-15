@@ -153,6 +153,22 @@ namespace CircuitCanvas.Models
             InitPins();
         }
 
+        public bool ContainsPoint(double px, double py)
+        {
+            // Переводим точку клика в локальную систему координат компонента с учетом угла поворота
+            double dx = px - X;
+            double dy = py - Y;
+
+            double rad = -RotationAngle * Math.PI / 180.0;
+            double localX = dx * Math.Cos(rad) - dy * Math.Sin(rad);
+            double localY = dx * Math.Sin(rad) + dy * Math.Cos(rad);
+
+            double halfW = Width / 2;
+            double halfH = Height / 2;
+
+            return localX >= -halfW && localX <= halfW && localY >= -halfH && localY <= halfH;
+        }
+
         public void Rotate()
         {
             RotationAngle = (RotationAngle + 90) % 360;
@@ -178,39 +194,43 @@ namespace CircuitCanvas.Models
         {
             if (Pins.Count == 0) return;
 
+            // Выводы всегда находятся на исходных физических концах компонента:
+            // горизонтально: (-Width/2, 0) и (+Width/2, 0).
+            // При повороте на RotationAngle они математически поворачиваются вокруг центра (0, 0)!
+            double halfW = Width > 0 ? Width / 2 : 46;
+            double halfH = Height > 0 ? Height / 2 : 24;
+
             if (Type == ComponentType.Ground)
             {
-                if (RotationAngle == 0) { Pins[0].RelX = 0; Pins[0].RelY = -Height / 2; }
-                else if (RotationAngle == 90) { Pins[0].RelX = -Width / 2; Pins[0].RelY = 0; }
-                else if (RotationAngle == 180) { Pins[0].RelX = 0; Pins[0].RelY = Height / 2; }
-                else { Pins[0].RelX = Width / 2; Pins[0].RelY = 0; }
+                // Для земли исходный вывод сверху (0, -halfH)
+                double rawX = 0;
+                double rawY = -halfH;
+                RotatePoint(rawX, rawY, RotationAngle, out double rx, out double ry);
+                Pins[0].RelX = rx;
+                Pins[0].RelY = ry;
             }
             else if (Pins.Count >= 2)
             {
-                double halfW = Width > 0 ? Width / 2 : 46;
-                double halfH = Height > 0 ? Height / 2 : 24;
+                // Исходные координаты (при RotationAngle = 0):
+                // Pin[0] ("+") слева (-halfW, 0)
+                // Pin[1] ("-") справа (+halfW, 0)
+                RotatePoint(-halfW, 0, RotationAngle, out double r0x, out double r0y);
+                RotatePoint(halfW, 0, RotationAngle, out double r1x, out double r1y);
 
-                if (RotationAngle == 0)
-                {
-                    Pins[0].RelX = -halfW; Pins[0].RelY = 0;
-                    Pins[1].RelX = halfW;  Pins[1].RelY = 0;
-                }
-                else if (RotationAngle == 90)
-                {
-                    Pins[0].RelX = 0; Pins[0].RelY = -halfH;
-                    Pins[1].RelX = 0; Pins[1].RelY = halfH;
-                }
-                else if (RotationAngle == 180)
-                {
-                    Pins[0].RelX = halfW;  Pins[0].RelY = 0;
-                    Pins[1].RelX = -halfW; Pins[1].RelY = 0;
-                }
-                else // 270
-                {
-                    Pins[0].RelX = 0; Pins[0].RelY = halfH;
-                    Pins[1].RelX = 0; Pins[1].RelY = -halfH;
-                }
+                Pins[0].RelX = r0x;
+                Pins[0].RelY = r0y;
+                Pins[1].RelX = r1x;
+                Pins[1].RelY = r1y;
             }
+        }
+
+        private static void RotatePoint(double x, double y, double angleDegrees, out double rx, out double ry)
+        {
+            double rad = angleDegrees * Math.PI / 180.0;
+            double cos = Math.Cos(rad);
+            double sin = Math.Sin(rad);
+            rx = Math.Round(x * cos - y * sin, 2);
+            ry = Math.Round(x * sin + y * cos, 2);
         }
     }
 

@@ -21,7 +21,7 @@ namespace CircuitCanvas.Models
 
     public static class UpdateChecker
     {
-        public const string CurrentVersion = "1.0.0";
+        public const string CurrentVersion = "1.0.2";
         public const string RepoOwner = "m1ssl3";
         public const string RepoName = "ElectroStudio";
 
@@ -123,11 +123,22 @@ namespace CircuitCanvas.Models
                 string extractDir = Path.Combine(tempDir, "extracted");
                 ZipFile.ExtractToDirectory(zipPath, extractDir);
 
-                // Создаём скрипт обновления updater.bat
+                // Если внутри zip файлы упакованы во вложенную папку (например ElectroStudio-v1.0.x/...),
+                // находим фактический корень с исполняемым файлом
+                string sourceDir = extractDir;
+                var subDirs = Directory.GetDirectories(extractDir);
+                if (!File.Exists(Path.Combine(extractDir, "ElectroStudio.exe")) && subDirs.Length == 1)
+                {
+                    sourceDir = subDirs[0];
+                }
+
+                // Создаём надёжный скрипт обновления updater.bat
                 string currentExe = Process.GetCurrentProcess().MainModule?.FileName ?? Path.Combine(appDir, "ElectroStudio.exe");
                 int currentPid = Process.GetCurrentProcess().Id;
 
                 string batchScript = $@"@echo off
+chcp 65001 > nul
+echo Ожидание завершения ElectroStudio (PID {currentPid})...
 timeout /t 1 /nobreak > nul
 :wait_loop
 tasklist /FI ""PID eq {currentPid}"" 2>NUL | find /I ""{currentPid}"" >NUL
@@ -136,13 +147,15 @@ if not errorlevel 1 (
     goto wait_loop
 )
 
-xcopy /Y /E /I ""{extractDir}\*"" ""{appDir}"" > nul
+echo Применение обновления...
+robocopy ""{sourceDir}"" ""{appDir}"" /E /IS /IT /NP /R:3 /W:1 > nul
+echo Запуск обновленного приложения...
 start """" ""{currentExe}""
 del ""%~f0""
 ";
 
                 string updaterBat = Path.Combine(tempDir, "updater.bat");
-                await File.WriteAllTextAsync(updaterBat, batchScript, System.Text.Encoding.ASCII);
+                await File.WriteAllTextAsync(updaterBat, batchScript, System.Text.Encoding.GetEncoding("cp866"));
 
                 var psi = new ProcessStartInfo
                 {
